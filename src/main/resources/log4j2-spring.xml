@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" monitorInterval="30">
+  <Appenders>
+    <RollingRandomAccessFile name="COMMON_FILE" fileName="logs/demo.log"
+                             filePattern="logs/bridge-common.log.%i">
+      <PatternLayout pattern="&lt;%d{yyyy-MM-dd HH:mm:ss.SSS Z}&gt;&lt;%level{length=1}&gt;&lt;%t&gt;&lt;%c{2}&gt; &lt;%m&gt;%n"/>
+      <Policies>
+        <SizeBasedTriggeringPolicy size="500 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy fileIndex="min" max="5"/>
+    </RollingRandomAccessFile>
+    <RollingRandomAccessFile name="SPRING_FILE" fileName="logs/demo-spring.log"
+                             filePattern="logs/demo-spring.log.%i" immediateFlush="true">
+      <patternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS}    %-5p    %m    (%c in '%t')%n"/>
+      <Policies>
+        <SizeBasedTriggeringPolicy size="10 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="4"/>
+    </RollingRandomAccessFile>
+    <RollingRandomAccessFile name="ERROR_FILE" fileName="logs/demo-error.log"
+                             filePattern="logs/demo-error.log.%i">
+      <ThresholdFilter level="error" onMatch="ACCEPT" onMismatch="DENY"/>
+      <PatternLayout pattern="&lt;%d{yyyy-MM-dd HH:mm:ss.SSS Z}&gt;&lt;%level{length=1}&gt;&lt;%t&gt;&lt;%c{2}&gt; &lt;%m&gt;%n"/>
+      <Policies>
+        <SizeBasedTriggeringPolicy size="500 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy fileIndex="min" max="5"/>
+    </RollingRandomAccessFile>
+  </Appenders>
+  <Loggers>
+    <Logger name="org.springframework" level="info">
+      <AppenderRef ref="SPRING_FILE"/>
+    </Logger>
+    <Root level="info">
+      <AppenderRef ref="COMMON_FILE"/>
+      <AppenderRef ref="ERROR_FILE"/>
+    </Root>
+  </Loggers>
+</Configuration>

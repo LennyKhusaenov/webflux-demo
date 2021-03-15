@@ -13,6 +13,7 @@ class DemoConfig @Autowired constructor(private val usersHandler: UsersHandler) 
     fun findUsersRoute() =
         coRouter {
             GET("/users", usersHandler::findAll)
-//            GET("/users/{id}", UsersHandler::findOne)
+            POST("/users", usersHandler::save)
+            POST("/user/with/pet", usersHandler::saveWithDefaultPer)
         }
 }
