@@ -16,7 +16,7 @@ class UserRepository(private val client: PgPool) : Logging {
     suspend fun findAll(): Flow<ArrayList<User>> {
         return flowOf(client.withConnection { connection ->
             connection
-                .query("SELECT * FROM users")
+                .query("select * from users")
                 .execute()
                 .map { rows ->
                     val users = ArrayList<User>()
@@ -48,23 +48,16 @@ class UserRepository(private val client: PgPool) : Logging {
 
     suspend fun saveUserWithPet(user: User) {
         val pet = Pet()
-         client.getConnection()
-            .onSuccess { conn ->
-                conn.begin()
-                    .compose { tx ->
-                        conn
-                            .preparedQuery("insert into users VALUES ($1,$2, $3)")
-                            .execute(Tuple.of(user.id, user.age, user.name))
-                            .compose {
-                                conn
-                                    .preparedQuery("insert into  pets  VALUES ($1, $2, $3)")
-                                    .execute(Tuple.of(pet.id, pet.name, pet.userId))
-                            }
-                            .compose { tx.commit() }
-                    }
-                    .eventually { conn.close() }
-                    .onSuccess { logger.info("Transaction succeeded") }
-                    .onFailure { err -> logger.error("Transaction failed: $err") }
-            }
+        client.withTransaction { pooledClient ->
+            pooledClient
+                .preparedQuery("insert into users VALUES ($1,$2, $3)")
+                .execute(Tuple.of(user.id, user.age, user.name))
+                .flatMap {
+                    pooledClient
+                        .preparedQuery("insert into  pets  VALUES ($1, $2, $3)")
+                        .execute(Tuple.of(pet.id, pet.name, pet.userId))
+                }
+        }.onSuccess { logger.info("Transaction succeeded") }
+            .onFailure { err -> logger.error("Transaction failed: $err") }
     }
 }
